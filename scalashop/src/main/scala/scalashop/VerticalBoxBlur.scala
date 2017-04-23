@@ -3,13 +3,15 @@ package scalashop
 import org.scalameter._
 import common._
 
+import scala.concurrent.forkjoin.ForkJoinTask
+
 object VerticalBoxBlurRunner {
 
   val standardConfig = config(
     Key.exec.minWarmupRuns -> 5,
-    Key.exec.maxWarmupRuns -> 10,
-    Key.exec.benchRuns -> 10,
-    Key.verbose -> true
+    Key.exec.maxWarmupRuns -> 100,
+    Key.exec.benchRuns -> 100,
+    Key.verbose -> false
   ) withWarmer(new Warmer.Default)
 
   def main(args: Array[String]): Unit = {
@@ -23,7 +25,7 @@ object VerticalBoxBlurRunner {
     }
     println(s"sequential blur time: $seqtime ms")
 
-    val numTasks = 32
+    val numTasks = 6
     val partime = standardConfig measure {
       VerticalBoxBlur.parBlur(src, dst, numTasks, radius)
     }
@@ -43,8 +45,12 @@ object VerticalBoxBlur {
    *  bottom.
    */
   def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
-    // TODO implement this method using the `boxBlurKernel` method
-    ???
+    for (
+      row <- 0 until src.height;
+      col <- clamp(from, 0, src.width) until clamp(end, 0, src.width)
+    ) {
+      dst.update(col, row, boxBlurKernel(src, col, row, radius))
+    }
   }
 
   /** Blurs the columns of the source image in parallel using `numTasks` tasks.
@@ -54,8 +60,11 @@ object VerticalBoxBlur {
    *  columns.
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
-    // TODO implement using the `task` construct and the `blur` method
-    ???
+    val step = (src.width - 1) / numTasks + 1
+    val strips = (0 to step * numTasks) by step
+    val ranges = strips zip strips.tail
+    ranges map {
+      case (from, end) => task(blur(src, dst, from, end, radius))
+    } foreach (_.join)
   }
-
 }
