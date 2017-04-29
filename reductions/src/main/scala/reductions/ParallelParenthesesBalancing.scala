@@ -41,22 +41,64 @@ object ParallelParenthesesBalancing {
   /** Returns `true` iff the parentheses in the input `chars` are balanced.
    */
   def balance(chars: Array[Char]): Boolean = {
-    ???
+    var currentCount = 0
+    var idx = 0
+    while (currentCount >= 0 && idx < chars.length) {
+      val inc = chars(idx) match {
+        case '(' => 1
+        case ')' => -1
+        case _ => 0
+      }
+      currentCount += inc
+      idx += 1
+    }
+    currentCount == 0
   }
 
   /** Returns `true` iff the parentheses in the input `chars` are balanced.
    */
   def parBalance(chars: Array[Char], threshold: Int): Boolean = {
 
-    def traverse(idx: Int, until: Int, arg1: Int, arg2: Int) /*: ???*/ = {
-      ???
+    def traverse(idx: Int, until: Int, arg1: Int, arg2: Int): (Int, Int) = {
+      if (idx == until) (arg1, arg2)
+      else {
+        var cur = idx
+        var left = arg1
+        var right = arg2
+        while (cur < until) {
+          val inc = chars(cur) match {
+            case '(' => 1
+            case ')' => -1
+            case _ => 0
+          }
+          left += inc
+
+          if (left < 0) {
+            right += 1
+            left = 0
+          }
+
+          cur += 1
+        }
+        (left, right)
+      }
     }
 
-    def reduce(from: Int, until: Int) /*: ???*/ = {
-      ???
+    def reduce(from: Int, until: Int): (Int, Int) = {
+      if (until - from <= threshold) {
+        val a = traverse(from, until, 0, 0)
+        print(a)
+        a
+      }
+      else {
+        val mid = (until + from) / 2
+        val (p1, p2) = parallel(reduce(from, mid), reduce(mid, until))
+        val balanced = Math.min(p1._1, p2._2)
+        (p1._1 - balanced + p2._1, p1._2 + p2._2 - balanced)
+      }
     }
 
-    reduce(0, chars.length) == ???
+    reduce(0, chars.length) == (0, 0)
   }
 
   // For those who want more:

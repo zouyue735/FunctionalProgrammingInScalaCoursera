@@ -46,4 +46,9 @@ class ParallelParenthesesBalancingSuite extends FunSuite {
   }
 
 
+  test("balance should work fo 2") {
+    println(parBalance("()".toCharArray, 1))
+    println(parBalance("(())".toCharArray, 1))
+  }
+
 }
