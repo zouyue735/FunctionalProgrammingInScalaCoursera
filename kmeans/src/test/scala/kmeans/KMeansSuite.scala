@@ -71,6 +71,13 @@ class KMeansSuite extends FunSuite {
     checkParClassify(points, means, expected)
   }
 
+  test("test") {
+    val points: GenSeq[Point] = GenSeq(new Point(0, 0, 1), new Point(0,0, -1), new Point(0,1,0), new Point(0,10,0))
+    val means: GenSeq[Point] = GenSeq(new Point(0, -1, 0), new Point(0, 2, 0))
+    val classified = classify(points, means)
+    println(KM.kMeans(points, means, 12.25))
+  }
+
 }
 
 
